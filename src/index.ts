@@ -95,7 +95,7 @@ client.once(Events.ClientReady, async (readyClient) => {
     console.error("Failed to load reaction role cache:", error);
   }
 
-  console.log(`Im online dumbfuck`);
+  console.log(`Im online`);
 });
 
 client.on(Events.MessageCreate, async (message) => {
