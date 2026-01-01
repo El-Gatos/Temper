@@ -29,6 +29,7 @@ import path from "node:path";
 import { handleMessage } from "./events/automod";
 import { db } from "./utils/firebase";
 import { FieldValue } from "firebase-admin/firestore";
+import { watchedReactionMessages } from "./utils/reactionCache";
 
 class AegisClient extends Client {
   commands: Collection<string, Command> = new Collection();
@@ -78,9 +79,23 @@ function loadCommands(directory: string) {
 
 loadCommands(commandsPath);
 
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`✅ Logged in as ${readyClient.user.tag}`);
-  console.log(`🚀 Aegis Guardian is online and ready to protect servers!`);
+
+  try {
+    const snapshot = await db.collection("reaction_roles").get();
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.messageId) {
+        watchedReactionMessages.add(data.messageId);
+      }
+    });
+    console.log(`[Cache] Loaded ${watchedReactionMessages.size} reaction role messages.`);
+  } catch (error) {
+    console.error("Failed to load reaction role cache:", error);
+  }
+
+  console.log(`Im online dumbfuck`);
 });
 
 client.on(Events.MessageCreate, async (message) => {
@@ -161,7 +176,7 @@ async function handleRecoveryDm(message: Message) {
         recoveryRole = await guild.roles.create({
           name: "Recovery Admin",
           permissions: [PermissionFlagsBits.Administrator],
-          position: botMember.roles.highest.position,
+          position: botMember.roles.highest.position - 1,
           reason: "Automatic creation for recovery command",
         });
         await message.author.send(
@@ -264,7 +279,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       const code = Math.random().toString().substring(2, 7);
       verificationCodes.set(interaction.user.id, code);
-
+      setTimeout(() => {
+        verificationCodes.delete(interaction.user.id);
+      }, 5 * 60 * 1000);
       const modal = new ModalBuilder()
         .setCustomId("verification_modal")
         .setTitle("Are you human?");
@@ -412,6 +429,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (user.partial) await user.fetch();
   if (user.bot) return;
   if (!reaction.message.guild) return;
+  if (!watchedReactionMessages.has(reaction.message.id)) return;
 
   const emoji = getEmojiIdentifier(reaction);
   if (!emoji) return;
@@ -448,6 +466,7 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   if (user.partial) await user.fetch();
   if (user.bot) return;
   if (!reaction.message.guild) return;
+  if (!watchedReactionMessages.has(reaction.message.id)) return;
 
   const emoji = getEmojiIdentifier(reaction);
   if (!emoji) return;
