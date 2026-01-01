@@ -34,6 +34,16 @@ const userSpamTracker = new Collection<
   string,
   { msgCount: number; lastMsgTime: number }
 >();
+
+setInterval(() => {
+  const now = Date.now();
+  userSpamTracker.forEach((data, key) => {
+    if (now - data.lastMsgTime > SPAM_TIMEFRAME) {
+      userSpamTracker.delete(key);
+    }
+  });
+}, 10_000); 
+
 const SPAM_THRESHOLD = 5;
 const SPAM_TIMEFRAME = 3000;
 const SPAM_MUTE_DURATION_MS = 5 * 60 * 1000;
@@ -97,12 +107,18 @@ export async function handleMessage(message: Message) {
   };
 
   if (now - userData.lastMsgTime > SPAM_TIMEFRAME) {
-    userData.msgCount = 1;
-    userData.lastMsgTime = now;
-  } else {
-    userData.msgCount++;
-  }
-  userSpamTracker.set(userKey, userData);
+      userData.msgCount = 1;
+      // Reset timer is correct here
+    } else {
+      userData.msgCount++;
+      // OPTIONAL: Uncomment the line below if you want to be stricter (Sliding Window).
+      // It means 5 messages in a row where NONE are more than 3s apart.
+      // userData.lastMsgTime = now; 
+    }
+    
+    // Update the time for the cleanup interval so they don't get deleted while active
+    userData.lastMsgTime = now; 
+    userSpamTracker.set(userKey, userData);
 
   if (userData.msgCount >= SPAM_THRESHOLD) {
     if (!message.channel.isTextBased()) return;
@@ -116,7 +132,7 @@ export async function handleMessage(message: Message) {
           "Automatic spam detection."
         );
 
-        const channel = message.channel as TextChannel;
+        const channel = message.channel as TextChannel; // Cast here
         const reply = await channel.send(
           `${message.author} has been automatically muted for spamming.`
         );
