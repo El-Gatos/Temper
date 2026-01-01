@@ -1,5 +1,3 @@
-// src/commands/moderation/mute.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

@@ -1,5 +1,3 @@
-// src/commands/utility/userinfo.ts
-
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,

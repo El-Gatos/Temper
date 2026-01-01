@@ -1,5 +1,3 @@
-// src/commands/moderation/editwarn.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

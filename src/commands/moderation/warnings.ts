@@ -1,5 +1,3 @@
-// src/commands/moderation/warnings.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

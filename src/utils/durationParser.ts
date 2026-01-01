@@ -1,4 +1,3 @@
-// src/utils/durationParser.ts
 
 /**
  * Parses a duration string (e.g., "10m", "1h", "7d") into milliseconds.

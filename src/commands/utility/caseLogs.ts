@@ -1,5 +1,3 @@
-// src/commands/moderation/caselogs.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

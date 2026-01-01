@@ -1,5 +1,3 @@
-// src/commands/admin/settings.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

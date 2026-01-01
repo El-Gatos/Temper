@@ -1,5 +1,3 @@
-// src/commands/moderation/delwarn.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,

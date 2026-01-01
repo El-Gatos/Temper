@@ -1,5 +1,3 @@
-// src/commands/admin/reactionrole.ts
-
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,
@@ -13,6 +11,7 @@ import {
 } from "discord.js";
 import { Command } from "../../types/command";
 import { db } from "../../utils/firebase";
+import { watchedReactionMessages } from "../../utils/reactionCache";
 
 export const command: Command = {
   data: new SlashCommandBuilder()
@@ -94,7 +93,6 @@ export const command: Command = {
         const emoji = interaction.options.getString("emoji", true);
         const role = interaction.options.getRole("role", true) as Role;
 
-        // 1. Validate the bot's permissions for the role
         const botMember = await interaction.guild.members.fetch(
           interaction.client.user.id
         );
@@ -139,6 +137,7 @@ export const command: Command = {
           emoji: emojiIdentifier,
           roleId: role.id,
         });
+        watchedReactionMessages.add(messageId);
 
         await interaction.editReply(
           `✅ **Rule Added!** I've reacted to the message in ${channel} with ${emoji}. Users will now get the **${role.name}** role.`
@@ -159,6 +158,10 @@ export const command: Command = {
         }
 
         await rrRef.doc(docId).delete();
+        const remainingRules = await rrRef.where("messageId", "==", messageId).get();
+        if (remainingRules.empty) {
+            watchedReactionMessages.delete(messageId);
+        }
         await interaction.editReply(
           `✅ **Rule Removed!** Users reacting with ${emoji} on message \`${messageId}\` will no longer get the role.`
         );

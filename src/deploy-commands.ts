@@ -12,7 +12,6 @@ if (!config.token || !config.clientId) {
 const commands = [];
 const commandsPath = path.join(__dirname, "commands");
 
-// New recursive function to find all command files
 function findCommandFiles(directory: string): string[] {
   let files: string[] = [];
   const items = fs.readdirSync(directory);
