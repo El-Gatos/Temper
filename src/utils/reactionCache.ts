@@ -1,0 +1,1 @@
+export const watchedReactionMessages = new Set<string>();
